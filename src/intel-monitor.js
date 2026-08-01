@@ -66,6 +66,10 @@ class IntelMonitor {
     if (!record) {
       return { ok: false, reason: "no_approval", message: "未经批准，拒绝发送" };
     }
+    // [audit: SC-2] consumed check+set MUST stay synchronous (no await between
+    // them) — an await here would open a TOCTOU window for concurrent sends.
+    // TriForge v3 + MiniMax M3 cross-audit: currently atomic by construction;
+    // if this method ever gains an await, move to a mutex or atomic counter.
     if (record.consumed) {
       return { ok: false, reason: "replay_rejected", message: "批准已被消费，拒绝重放" };
     }
